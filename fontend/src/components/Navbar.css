@@ -1,0 +1,26 @@
+.custom-navbar {
+    background-color: #ffc0cb !important; /* Light pink background */
+    border-bottom: 2px solid #ff69b4; /* Darker pink border at the bottom */
+  }
+  
+  .navbar-brand {
+    color: #ff1493 !important; /* Bright pink brand text */
+    font-weight: bold;
+  }
+  
+  .nav-link {
+    color: #ff69b4 !important; /* Darker pink links */
+  }
+  
+  .nav-link.active {
+    color: #ff1493 !important; /* Bright pink active link */
+  }
+  
+  .nav-link:hover {
+    color: #ff1493 !important; /* Bright pink on hover */
+  }
+  
+  .navbar-toggler-icon {
+    background-color: #ff69b4; /* Pink toggle icon */
+  }
+  
