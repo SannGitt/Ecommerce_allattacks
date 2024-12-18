@@ -1,7 +1,9 @@
+// src/index.js (Backend code)
+
 const express = require("express");
 const path = require("path");
 const cors = require('cors');
-const { LogInCollection, ProductCollection } = require("./mongodb");
+const { LogInCollection, ProductCollection, CommentCollection } = require("./mongodb"); // Added CommentCollection
 
 const app = express();
 const port = process.env.PORT || 4200;
@@ -10,23 +12,12 @@ app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 
-app.get('/test', (req, res) => {
-    res.send('Test route is working!');
-});
-
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../fontend/build')));
-
-// Handle any other requests by serving the React app's index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../fontend/build'));
-});
+app.use(express.static(path.join(__dirname, '../frontend/build')));
 
 // Handle signup
 app.post('/signup', async (req, res) => {
     const { name, password } = req.body;
-
-    // Check for empty fields
     if (!name || !password) {
         return res.status(400).json({ message: "Name and password are required" });
     }
@@ -35,7 +26,6 @@ app.post('/signup', async (req, res) => {
 
     try {
         const existingUser = await LogInCollection.findOne({ name });
-
         if (existingUser) {
             if (existingUser.password === password) {
                 res.send("User details already exist");
@@ -76,76 +66,44 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Handle adding products to the cart (simulated for now)
-app.post('/add-to-cart', async (req, res) => {
-    const { name, productId, quantity } = req.body;
-
+// Route to fetch all comments (global comments section)
+app.get('/api/comments', async (req, res) => {
     try {
-        const product = await ProductCollection.findById(productId);
-
-        if (!product) {
-            return res.status(404).json({ message: 'Product not found' });
-        }
-
-        const cartItem = { productId: product._id, price: product.price, quantity };
-
-        // Simulate cart logic for now, can be extended to persist cart in DB
-        res.status(200).json({ message: 'Product added to cart', cartItem });
+        const comments = await CommentCollection.find(); // Fetch all comments
+        res.status(200).json(comments);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'An error occurred while adding to cart' });
+        res.status(500).json({ message: "Error fetching comments" });
     }
 });
 
-// Handle checkout
-app.post('/checkout', async (req, res) => {
-    const { name, totalAmount } = req.body; // Extract name and total amount from request
+// Updated Route to post a new comment (Global Comments)
+app.post('/api/comments', async (req, res) => {
+    const { user, commentText } = req.body; // Removed clothId
 
-    try {
-        // Find the user in the database
-        const user = await LogInCollection.findOne({ name });
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' }); // Send error if user is not found
-        }
-
-        // Check if the user has enough balance
-        if (user.walletBalance >= totalAmount) {
-            // Deduct the total amount from the user's wallet balance
-            user.walletBalance -= totalAmount;
-            await user.save(); // Save the updated user back to the database
-
-            return res.status(200).json({
-                remainingBalance: user.walletBalance, // Send remaining balance back to frontend
-            });
-        } else {
-            return res.status(400).json({ message: 'Insufficient wallet balance' }); // Handle insufficient balance
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'An error occurred during checkout' });
+    if (!user || !commentText) {
+        return res.status(400).json({ message: "User and commentText are required" });
     }
-});
 
-// Product management
-app.post('/add-product', async (req, res) => {
-    const { description, price } = req.body;
-
-    const newProduct = new ProductCollection({
-        description,
-        price
+    const newComment = new CommentCollection({
+        user,
+        commentText,
+        date: new Date()
     });
 
     try {
-        await newProduct.save();
-        res.status(201).send("Product added successfully");
+        await newComment.save();
+        res.status(201).json({ message: "Comment added successfully" });
     } catch (error) {
         console.error(error);
-        res.status(500).send("An error occurred while adding the product");
+        res.status(500).json({ message: "Error saving comment" });
     }
 });
+
 
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+

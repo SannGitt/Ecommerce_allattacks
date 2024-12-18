@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import Carousal from './Carousal';
 import './Home.css'; 
 import Card from './Card';
+import ReactLinkify from 'react-linkify'; // Import the library
 
 const Home = (props) => {
   const { loggedIn, email } = props;
   const navigate = useNavigate();
   const [clothData, setClothData] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
 
   const onButtonClick = () => {
     if (loggedIn) {
@@ -18,6 +21,17 @@ const Home = (props) => {
   };
 
   useEffect(() => {
+    // Fetch existing comments from the backend
+    fetch('http://localhost:4200/api/comments')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch comments');
+        }
+        return response.json();
+      })
+      .then((data) => setComments(data))
+      .catch((error) => console.error('Error fetching comments:', error));
+
     // Fetch cloth data from ClothData.json
     fetch('/ClothData.json')
       .then(response => {
@@ -31,6 +45,40 @@ const Home = (props) => {
         console.error('Error fetching cloth data:', error);
       });
   }, []);
+
+  const handleCommentSubmit = (event) => {
+    event.preventDefault();
+    if (!newComment) {
+      alert('Please write a comment.');
+      return;
+    }
+
+    // Send the comment to the backend
+    fetch('http://localhost:4200/api/comments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user: email || 'Anonymous', // Use the logged-in user's email or 'Anonymous'
+        commentText: newComment,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to save the comment');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        alert('Comment added successfully!');
+        setComments([...comments, { user: email || 'Anonymous', commentText: newComment }]); // Add new comment locally
+        setNewComment(''); // Clear the input field
+      })
+      .catch((error) => {
+        console.error('Error saving comment:', error);
+      });
+  };
 
   return (
     <div className="home-container">
@@ -71,7 +119,35 @@ const Home = (props) => {
         </div>
       </div>
 
-      <Card/>
+      {/* Comment Section */}
+      <div className="comment-section">
+        <h2>Leave a Comment</h2>
+        <form className="comment-form" onSubmit={handleCommentSubmit}>
+          <textarea
+            placeholder="Write your comment here..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+          ></textarea>
+          <button type="submit" className="submit-comment-button">Submit Comment</button>
+        </form>
+      </div>
+
+      {/* Display Comments */}
+<div className="comment-display">
+  <h2>Comments</h2>
+  {comments.map((comment, index) => (
+    <div key={index} className="comment">
+      <p>
+        <strong>{comment.user}:</strong> 
+        <ReactLinkify>
+          {comment.commentText} {/* Links inside this text will become clickable */}
+        </ReactLinkify>
+      </p>
+    </div>
+  ))}
+</div>
+
+      <Card />
     </div>
   );
 };

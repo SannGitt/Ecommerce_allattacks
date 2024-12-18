@@ -1,7 +1,9 @@
+// mongodb.js
+
 const mongoose = require("mongoose");
 
 // Connect to MongoDB
-mongoose.connect("mongodb://Bhumika:root@ecommerce-shard-00-00.1kf8j.mongodb.net:27017,ecommerce-shard-00-01.1kf8j.mongodb.net:27017,ecommerce-shard-00-02.1kf8j.mongodb.net:27017/UserData?ssl=true&replicaSet=atlas-opw92l-shard-0&authSource=admin&retryWrites=true&w=majority&appName=ECOMMERCE")
+mongoose.connect("mongodb+srv://nupurdeshpandems:nupurdeshpande@sulidaclunew.vssc0.mongodb.net/mernstack?retryWrites=true&w=majority&appName=SULIDACLUNEW")
     .then(() => {
         console.log('Mongoose connected');
     })
@@ -44,9 +46,33 @@ const productSchema = new mongoose.Schema({
 // Create the product collection
 const ProductCollection = mongoose.model('ProductCollection', productSchema);
 
+// Define the comment schema
+const commentSchema = new mongoose.Schema({
+    user: {
+        type: String,
+        required: true
+    },
+    commentText: {
+        type: String,
+        required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Create the comment collection
+const CommentCollection = mongoose.model('CommentCollection', commentSchema);
+
+module.exports = CommentCollection;
+
+
 // Export the models
 module.exports = {
     LogInCollection,
     ProductCollection,
+    CommentCollection // Added export for CommentCollection
 };
+
 
