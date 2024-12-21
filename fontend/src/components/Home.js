@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Carousal from './Carousal';
-import './Home.css'; 
+import './Home.css';
 import Card from './Card';
 import ReactLinkify from 'react-linkify'; // Import the library
 
-const Home = (props) => {
+const Home = props => {
   const { loggedIn, email } = props;
   const navigate = useNavigate();
   const [clothData, setClothData] = useState([]);
@@ -14,7 +14,7 @@ const Home = (props) => {
 
   const onButtonClick = () => {
     if (loggedIn) {
-      // Handle logout logic here
+      navigate('/protected'); // Navigate to protected page if logged in
     } else {
       navigate('/login');
     }
@@ -23,14 +23,14 @@ const Home = (props) => {
   useEffect(() => {
     // Fetch existing comments from the backend
     fetch('http://localhost:4200/api/comments')
-      .then((response) => {
+      .then(response => {
         if (!response.ok) {
           throw new Error('Failed to fetch comments');
         }
         return response.json();
       })
-      .then((data) => setComments(data))
-      .catch((error) => console.error('Error fetching comments:', error));
+      .then(data => setComments(data))
+      .catch(error => console.error('Error fetching comments:', error));
 
     // Fetch cloth data from ClothData.json
     fetch('/ClothData.json')
@@ -46,7 +46,7 @@ const Home = (props) => {
       });
   }, []);
 
-  const handleCommentSubmit = (event) => {
+  const handleCommentSubmit = event => {
     event.preventDefault();
     if (!newComment) {
       alert('Please write a comment.');
@@ -64,18 +64,21 @@ const Home = (props) => {
         commentText: newComment,
       }),
     })
-      .then((response) => {
+      .then(response => {
         if (!response.ok) {
           throw new Error('Failed to save the comment');
         }
         return response.json();
       })
-      .then((data) => {
+      .then(() => {
         alert('Comment added successfully!');
-        setComments([...comments, { user: email || 'Anonymous', commentText: newComment }]); // Add new comment locally
+        setComments([
+          ...comments,
+          { user: email || 'Anonymous', commentText: newComment },
+        ]); // Add new comment locally
         setNewComment(''); // Clear the input field
       })
-      .catch((error) => {
+      .catch(error => {
         console.error('Error saving comment:', error);
       });
   };
@@ -85,21 +88,23 @@ const Home = (props) => {
       <div className="content-container">
         <Carousal />
         <div className="welcome-message">
-          <h1>Welcome!!</h1>
+          <h1>Welcome to AMEHA!</h1>
         </div>
         <div className="message-container">
           {loggedIn ? (
             <div className="logged-in-message">
-              <p>Welcome back!</p>
-              <p>Your email address is <strong>{email}</strong></p>
+              <p>
+                Welcome back, <strong>{email}</strong>!
+              </p>
+              <p>You can access exclusive content.</p>
             </div>
           ) : (
-            <p>Please SignUp to proceed.</p>
+            <p>Please SignUp to explore our exclusive collection.</p>
           )}
         </div>
         <div className="button-container">
           <button className="action-button" onClick={onButtonClick}>
-            {loggedIn ? 'Log out' : 'SignUp'}
+            {loggedIn ? 'Access Protected Page' : 'Sign Up'}
           </button>
         </div>
       </div>
@@ -126,26 +131,26 @@ const Home = (props) => {
           <textarea
             placeholder="Write your comment here..."
             value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
+            onChange={e => setNewComment(e.target.value)}
           ></textarea>
-          <button type="submit" className="submit-comment-button">Submit Comment</button>
+          <button type="submit" className="submit-comment-button">
+            Submit Comment
+          </button>
         </form>
       </div>
 
       {/* Display Comments */}
-<div className="comment-display">
-  <h2>Comments</h2>
-  {comments.map((comment, index) => (
-    <div key={index} className="comment">
-      <p>
-        <strong>{comment.user}:</strong> 
-        <ReactLinkify>
-          {comment.commentText} {/* Links inside this text will become clickable */}
-        </ReactLinkify>
-      </p>
-    </div>
-  ))}
-</div>
+      <div className="comment-display">
+        <h2>Comments</h2>
+        {comments.map((comment, index) => (
+          <div key={index} className="comment">
+            <p>
+              <strong>{comment.user}:</strong>{' '}
+              <ReactLinkify>{comment.commentText}</ReactLinkify>
+            </p>
+          </div>
+        ))}
+      </div>
 
       <Card />
     </div>
@@ -153,4 +158,3 @@ const Home = (props) => {
 };
 
 export default Home;
-

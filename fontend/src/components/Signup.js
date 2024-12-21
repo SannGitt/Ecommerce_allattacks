@@ -11,7 +11,7 @@ const Signup = () => {
 
   const handleSignup = async () => {
     try {
-      const response = await fetch('http://localhost:4200/signup', {
+      const response = await fetch('http://192.168.6.180:4200/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,13 +47,13 @@ const Signup = () => {
         <input
           type="text"
           value={name} // Using name instead of email
-          onChange={(e) => setName(e.target.value)}
+          onChange={e => setName(e.target.value)}
           placeholder="Enter your name"
         />
         <input
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
           placeholder="Enter your password"
         />
         {error && <p className="error">{error}</p>}
